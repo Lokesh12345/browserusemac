@@ -16,13 +16,7 @@ from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
-from browser_use.agent.cloud_events import (
-	CreateAgentOutputFileEvent,
-	CreateAgentSessionEvent,
-	CreateAgentStepEvent,
-	CreateAgentTaskEvent,
-	UpdateAgentTaskEvent,
-)
+# Cloud events removed for privacy
 from browser_use.agent.message_manager.utils import save_conversation
 from browser_use.dom.views import DEFAULT_INCLUDE_ATTRIBUTES
 from browser_use.llm.base import BaseChatModel
@@ -67,9 +61,7 @@ from browser_use.dom.history_tree_processor.service import (
 )
 from browser_use.filesystem.file_system import FileSystem
 from browser_use.observability import observe, observe_debug
-from browser_use.sync import CloudSync
-from browser_use.telemetry.service import ProductTelemetry
-from browser_use.telemetry.views import AgentTelemetryEvent
+# Telemetry and cloud sync removed for privacy
 from browser_use.utils import (
 	_log_pretty_path,
 	get_browser_use_version,
@@ -182,7 +174,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		source: str | None = None,
 		file_system_path: str | None = None,
 		task_id: str | None = None,
-		cloud_sync: CloudSync | None = None,
+		# cloud_sync parameter removed for privacy
 		calculate_cost: bool = False,
 		display_files_in_done_text: bool = True,
 		include_tool_call_examples: bool = False,
@@ -446,20 +438,20 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		# Context
 		self.context: Context | None = context
 
-		# Telemetry
-		self.telemetry = ProductTelemetry()
-
+		# Telemetry and cloud sync removed for privacy
+		# self.telemetry = ProductTelemetry()  # REMOVED
+		
 		# Event bus with WAL persistence
 		# Default to ~/.config/browseruse/events/{agent_session_id}.jsonl
 		# wal_path = CONFIG.BROWSER_USE_CONFIG_DIR / 'events' / f'{self.session_id}.jsonl'
 		self.eventbus = EventBus(name=f'Agent_{str(self.id)[-4:]}')
 
-		# Cloud sync service
-		self.enable_cloud_sync = CONFIG.BROWSER_USE_CLOUD_SYNC
-		if self.enable_cloud_sync or cloud_sync is not None:
-			self.cloud_sync = cloud_sync or CloudSync()
-			# Register cloud sync handler
-			self.eventbus.on('*', self.cloud_sync.handle_event)
+		# Cloud sync service disabled for privacy
+		self.enable_cloud_sync = False
+		# if self.enable_cloud_sync or cloud_sync is not None:
+		#	self.cloud_sync = cloud_sync or CloudSync()
+		#	# Register cloud sync handler
+		#	self.eventbus.on('*', self.cloud_sync.handle_event)
 
 		if self.settings.save_conversation_path:
 			self.settings.save_conversation_path = Path(self.settings.save_conversation_path).expanduser().resolve()
@@ -1112,32 +1104,8 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		final_res = self.state.history.final_result()
 		final_result_str = json.dumps(final_res) if final_res is not None else None
 
-		self.telemetry.capture(
-			AgentTelemetryEvent(
-				task=self.task,
-				model=self.llm.model,
-				model_provider=self.llm.provider,
-				planner_llm=self.settings.planner_llm.model if self.settings.planner_llm else None,
-				max_steps=max_steps,
-				max_actions_per_step=self.settings.max_actions_per_step,
-				use_vision=self.settings.use_vision,
-				use_validation=self.settings.validate_output,
-				version=self.version,
-				source=self.source,
-				cdp_url=urlparse(self.browser_session.cdp_url).hostname
-				if self.browser_session and self.browser_session.cdp_url
-				else None,
-				action_errors=self.state.history.errors(),
-				action_history=action_history_data,
-				urls_visited=self.state.history.urls(),
-				steps=self.state.n_steps,
-				total_input_tokens=token_summary.prompt_tokens,
-				total_duration_seconds=self.state.history.total_duration_seconds(),
-				success=self.state.history.is_successful(),
-				final_result_response=final_result_str,
-				error_message=agent_run_error,
-			)
-		)
+		# Telemetry capture removed for privacy
+		# self.telemetry.capture(...) - REMOVED
 
 	async def take_step(self, step_info: AgentStepInfo | None = None) -> tuple[bool, bool]:
 		"""Take a step
@@ -1170,18 +1138,15 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 
 		loop = asyncio.get_event_loop()
 		agent_run_error: str | None = None  # Initialize error tracking variable
-		self._force_exit_telemetry_logged = False  # ADDED: Flag for custom telemetry on force exit
+		# Telemetry logging removed for privacy
 
 		# Set up the  signal handler with callbacks specific to this agent
 		from browser_use.utils import SignalHandler
 
 		# Define the custom exit callback function for second CTRL+C
 		def on_force_exit_log_telemetry():
-			self._log_agent_event(max_steps=max_steps, agent_run_error='SIGINT: Cancelled by user')
-			# NEW: Call the flush method on the telemetry instance
-			if hasattr(self, 'telemetry') and self.telemetry:
-				self.telemetry.flush()
-			self._force_exit_telemetry_logged = True  # Set the flag
+			# Telemetry logging removed for privacy
+			pass
 
 		signal_handler = SignalHandler(
 			loop=loop,
@@ -1329,14 +1294,8 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 			# Unregister signal handlers before cleanup
 			signal_handler.unregister()
 
-			if not self._force_exit_telemetry_logged:  # MODIFIED: Check the flag
-				try:
-					self._log_agent_event(max_steps=max_steps, agent_run_error=agent_run_error)
-				except Exception as log_e:  # Catch potential errors during logging itself
-					self.logger.error(f'Failed to log telemetry event: {log_e}', exc_info=True)
-			else:
-				# ADDED: Info message when custom telemetry for SIGINT was already logged
-				self.logger.info('Telemetry for force exit (SIGINT) was logged by custom exit callback.')
+			# Telemetry logging removed for privacy
+			# Original telemetry code disabled
 
 			# NOTE: CreateAgentSessionEvent and CreateAgentTaskEvent are now emitted at the START of run()
 			# to match backend requirements for CREATE events to be fired when entities are created,

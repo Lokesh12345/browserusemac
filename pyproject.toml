@@ -20,7 +20,7 @@ dependencies = [
     "patchright>=1.52.5",
     "playwright>=1.52.0",
     "portalocker>=2.7.0,<3.0.0",
-    "posthog>=3.7.0",
+    # "posthog>=3.7.0",  # Removed for privacy
     "psutil>=7.0.0",
     "pydantic>=2.11.5",
     "pyobjc>=11.0; platform_system == 'darwin'",
