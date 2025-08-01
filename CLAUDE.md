@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Browser-Use is an async Python library (>=3.11) that implements AI browser driver abilities using LLMs and Playwright. It enables AI agents to autonomously interact with the web by navigating pages, processing HTML, and deciding next actions.
 
+**⚠️ PRIVACY NOTICE**: This fork has been completely sanitized for privacy. All telemetry, cloud sync, and external data transmission have been removed. See `PRIVACY_MODIFICATIONS.md` for details.
+
 ## Key Commands
 
 ### Development Setup
@@ -118,9 +120,12 @@ Browser-use can be used as an MCP server or connect to external MCP servers:
 Key environment variables (see `browser_use/config.py`):
 - `BROWSER_USE_LOGGING_LEVEL`: Logging level (default: info)
 - `BROWSER_USE_CONFIG_DIR`: Config directory location
-- `ANONYMIZED_TELEMETRY`: Enable/disable telemetry
+- `ANONYMIZED_TELEMETRY`: **Always false** - telemetry disabled for privacy
+- `BROWSER_USE_CLOUD_SYNC`: **Always false** - cloud sync disabled for privacy
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.: LLM provider keys
 - `SKIP_LLM_API_KEY_VERIFICATION`: Skip API key checks (for testing)
+
+**Privacy Settings**: All telemetry and cloud features are permanently disabled in this fork.
 
 ## Common Workflows
 

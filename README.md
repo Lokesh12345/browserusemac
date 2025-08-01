@@ -6,6 +6,12 @@
 
 <h1 align="center">Enable AI to control your browser 🤖</h1>
 
+<div align="center">
+<strong>🔒 PRIVACY-FOCUSED FORK</strong><br>
+All telemetry, cloud sync, and external data transmission removed<br>
+<em>See <a href="PRIVACY_MODIFICATIONS.md">PRIVACY_MODIFICATIONS.md</a> for details</em>
+</div>
+
 [![GitHub stars](https://img.shields.io/github/stars/gregpr07/browser-use?style=social)](https://github.com/gregpr07/browser-use/stargazers)
 [![Discord](https://img.shields.io/discord/1303749220842340412?color=7289DA&label=Discord&logo=discord&logoColor=white)](https://link.browser-use.com/discord)
 [![Cloud](https://img.shields.io/badge/Cloud-☁️-blue)](https://cloud.browser-use.com)
