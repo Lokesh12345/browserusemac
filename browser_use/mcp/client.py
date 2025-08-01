@@ -32,7 +32,7 @@ from pydantic import BaseModel, ConfigDict, Field, create_model
 from browser_use.agent.views import ActionResult
 from browser_use.controller.registry.service import Registry
 from browser_use.controller.service import Controller
-from browser_use.telemetry import MCPClientTelemetryEvent, ProductTelemetry
+# from browser_use.telemetry import MCPClientTelemetryEvent, ProductTelemetry  # Removed for privacy
 from browser_use.utils import get_browser_use_version, is_new_tab_page
 
 logger = logging.getLogger(__name__)
@@ -75,8 +75,7 @@ class MCPClient:
 		self._registered_actions: set[str] = set()
 		self._connected = False
 		self._disconnect_event = asyncio.Event()
-		self._telemetry = ProductTelemetry()
-
+		# Telemetry removed for privacy
 	async def connect(self) -> None:
 		"""Connect to the MCP server and discover available tools."""
 		if self._connected:
@@ -115,11 +114,7 @@ class MCPClient:
 			# Capture telemetry for connect action
 			duration = time.time() - start_time
 			self._telemetry.capture(
-				MCPClientTelemetryEvent(
-					server_name=self.server_name,
-					command=self.command,
-					tools_discovered=len(self._tools),
-					version=get_browser_use_version(),
+			# Telemetry capture removed for privacy					version=get_browser_use_version(),
 					action='connect',
 					duration_seconds=duration,
 					error_message=error_msg,
@@ -195,12 +190,7 @@ class MCPClient:
 			# Capture telemetry for disconnect action
 			duration = time.time() - start_time
 			self._telemetry.capture(
-				MCPClientTelemetryEvent(
-					server_name=self.server_name,
-					command=self.command,
-					tools_discovered=0,  # Tools cleared on disconnect
-					version=get_browser_use_version(),
-					action='disconnect',
+			# Telemetry capture removed for privacy					action='disconnect',
 					duration_seconds=duration,
 					error_message=error_msg,
 				)
@@ -340,11 +330,7 @@ class MCPClient:
 					# Capture telemetry for tool call
 					duration = time.time() - start_time
 					self._telemetry.capture(
-						MCPClientTelemetryEvent(
-							server_name=self.server_name,
-							command=self.command,
-							tools_discovered=len(self._tools),
-							version=get_browser_use_version(),
+			# Telemetry capture removed for privacy							version=get_browser_use_version(),
 							action='tool_call',
 							tool_name=tool.name,
 							duration_seconds=duration,
@@ -383,11 +369,7 @@ class MCPClient:
 					# Capture telemetry for tool call
 					duration = time.time() - start_time
 					self._telemetry.capture(
-						MCPClientTelemetryEvent(
-							server_name=self.server_name,
-							command=self.command,
-							tools_discovered=len(self._tools),
-							version=get_browser_use_version(),
+			# Telemetry capture removed for privacy							version=get_browser_use_version(),
 							action='tool_call',
 							tool_name=tool.name,
 							duration_seconds=duration,

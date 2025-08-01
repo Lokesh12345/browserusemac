@@ -615,10 +615,10 @@ class BrowserUseApp(App):
 							+ '…'
 						)
 						browser_info.write(f'👁️  [green]{current_url}[/]')
-			except Exception as e:
-				browser_info.write(f'[red]Error updating browser info: {str(e)}[/]')
-		else:
-			browser_info.write('[red]Browser not initialized[/]')
+			else:
+				browser_info.write('[red]Browser not initialized[/]')
+		except Exception as e:
+			browser_info.write(f'[red]Error updating browser info: {str(e)}[/]')
 
 	def update_model_panel(self) -> None:
 		"""Update model information panel with details about the LLM."""
@@ -959,9 +959,7 @@ class BrowserUseApp(App):
 
 			# Links panel with URLs
 			with Container(id='links-panel'):
-				with HorizontalGroup(classes='link-row'):
-					# Cloud promotional content removed
-
+				# Cloud promotional content removed - empty panel
 				yield Static('')  # Empty line
 
 				with HorizontalGroup(classes='link-row'):
@@ -1076,6 +1074,7 @@ async def run_prompt_mode(prompt: str, ctx: click.Context, debug: bool = False):
 		sys.exit(1)
 	finally:
 		# Telemetry flush removed for privacy
+		pass
 
 
 async def textual_interface(config: dict[str, Any]):
@@ -1219,3 +1218,23 @@ def main(ctx: click.Context, debug: bool = False, **kwargs):
 
 	# Check if MCP server mode is activated
 	if kwargs.get('mcp'):
+		# Telemetry capture removed for privacy
+		# Run as MCP server
+		from browser_use.mcp.server import main as mcp_main
+
+		asyncio.run(mcp_main())
+		return
+
+	# Check if we need to run in oneshot mode or textual interface
+	if kwargs.get('task'):
+		# Run oneshot task
+		asyncio.run(oneshot_task(ctx, **kwargs))
+	else:
+		# Run interactive textual interface
+		config = load_user_config()
+		config = update_config_with_click_args(config, ctx)
+		asyncio.run(textual_interface(config))
+
+
+if __name__ == '__main__':
+	main()

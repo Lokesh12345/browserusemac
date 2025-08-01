@@ -134,7 +134,7 @@ except ImportError:
 	logger.error('MCP SDK not installed. Install with: pip install mcp')
 	sys.exit(1)
 
-from browser_use.telemetry import MCPServerTelemetryEvent, ProductTelemetry
+# from browser_use.telemetry import MCPServerTelemetryEvent, ProductTelemetry  # Removed for privacy
 from browser_use.utils import get_browser_use_version
 
 
@@ -183,7 +183,7 @@ class BrowserUseServer:
 		self.controller: Controller | None = None
 		self.llm: ChatOpenAI | None = None
 		self.file_system: FileSystem | None = None
-		self._telemetry = ProductTelemetry()
+		# self._telemetry = ProductTelemetry()  # Removed for privacy
 		self._start_time = time.time()
 
 		# Setup handlers
@@ -376,15 +376,7 @@ class BrowserUseServer:
 			finally:
 				# Capture telemetry for tool calls
 				duration = time.time() - start_time
-				self._telemetry.capture(
-					MCPServerTelemetryEvent(
-						version=get_browser_use_version(),
-						action='tool_call',
-						tool_name=name,
-						duration_seconds=duration,
-						error_message=error_msg,
-					)
-				)
+				# Telemetry capture removed for privacy
 
 	async def _execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> str:
 		"""Execute a browser-use tool."""
@@ -810,27 +802,13 @@ async def main():
 
 	server = BrowserUseServer()
 	# Capture telemetry for server start
-	server._telemetry.capture(
-		MCPServerTelemetryEvent(
-			version=get_browser_use_version(),
-			action='start',
-			parent_process_cmdline=get_parent_process_cmdline(),
-		)
-	)
+	# Telemetry capture removed for privacy
 	try:
 		await server.run()
 	finally:
 		# Capture telemetry for server stop
 		duration = time.time() - server._start_time
-		server._telemetry.capture(
-			MCPServerTelemetryEvent(
-				version=get_browser_use_version(),
-				action='stop',
-				duration_seconds=duration,
-				parent_process_cmdline=get_parent_process_cmdline(),
-			)
-		)
-		server._telemetry.flush()
+		# Telemetry capture removed for privacy
 
 
 if __name__ == '__main__':
