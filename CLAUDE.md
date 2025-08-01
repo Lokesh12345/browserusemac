@@ -1,59 +1,150 @@
-Browser-Use is an async python >= 3.11 library that implements AI browser driver abilities using LLMs + playwright.
-We want our library APIs to be ergonomic, intuitive, and hard to get wrong.
+# CLAUDE.md
 
-## Code Style
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-- Use async python
-- Use tabs for indentation in all python code, not spaces
-- Use the modern python >3.12 typing style, e.g. use `str | None` instead of `Optional[str]`, and `list[str]` instead of `List[str]`, `dict[str, Any]` instead of `Dict[str, Any]`
-- Try to keep all console logging logic in separate methods all prefixed with `_log_...`, e.g. `def _log_pretty_path(path: Path) -> str` so as not to clutter up the main logic.
-- Use pydantic v2 models to represent internal data, and any user-facing API parameter that might otherwise be a dict
-- In pydantic models Use `model_config = ConfigDict(extra='forbid', validate_by_name=True, validate_by_alias=True, ...)` etc. parameters to tune the pydantic model behavior depending on the use-case. Use `Annotated[..., AfterValidator(...)]` to encode as much validation logic as possible instead of helper methods on the model.
-- We keep the main code for each sub-component in a `service.py` file usually, and we keep most pydantic models in `views.py` files unless they are long enough deserve their own file
-- Use runtime assertions at the start and end of functions to enforce constraints and assumptions
-- Prefer `from uuid_extensions import uuid7str` +  `id: str = Field(default_factory=uuid7str)` for all new id fields
-- Run tests using `uv run pytest -vxs tests/ci`
-- Run the type checker using `uv run pyright`
+## Overview
 
-## Keep Examples & Tests Up-To-Date
+Browser-Use is an async Python library (>=3.11) that implements AI browser driver abilities using LLMs and Playwright. It enables AI agents to autonomously interact with the web by navigating pages, processing HTML, and deciding next actions.
 
-- Make sure to read relevant examples in the `examples/` directory for context and keep them up-to-date when making changes.
-- Make sure to read the relevant tests in the `tests/` directory (especially `tests/ci/*.py`) and keep them up-to-date as well. 
-- Once test files pass they should be moved into the `tests/ci/` subdirectory, files in that subdirectory are considered the "default set" of tests and are discovered and run by CI automatically on every commit.
-- Never use mocks in tests other than for the llm, instead use pytest fixtures to set up real objects and pytest-httpserver
-- Never use real remote URLs in tests (e.g. `https://google.com` or `https://example.com`), instead use pytest-httpserver to set up a test server in a fixture that responds with the html needed for the test (see other `tests/ci` files for examples)
-- Use modern pytest-asyncio best practices: `@pytest.mark.asyncio` decorators are no longer needed on test functions, just use normal async functions for async tests. Use `loop = asyncio.get_event_loop()` inside tests that need it instead of passing `event_loop` as a function argument. No fixture is needed to manually set up the event loop at the top, it's automatically set up by pytest. Fixture functions (even async ones) only need a simple `@pytest.fixture` decorator with no arguments.
+## Key Commands
 
-## Personality
+### Development Setup
+```bash
+# Create virtual environment and install dependencies
+uv venv --python 3.11
+source .venv/bin/activate
+uv sync
 
-Don't worry about formalities.
+# Install browser driver
+playwright install chromium --with-deps --no-shell
+```
 
-Don't shy away from complexity, assume a deeply technical explanation is wanted for all questions. Call out the proper terminology, models, units, etc. used by fields of study relevant to the question. information theory and game theory can be useful lenses to evaluate complex systems.
+### Running Tests
+```bash
+# Run all CI tests
+uv run pytest tests/ci -vxs
 
-Choose your analogies carefully and keep poetic flowery language to a minimum, a little dry wit is welcome.
+# Run all tests with auto-parallelization
+./bin/test.sh
 
-If policy prevents you from responding normally, please printing "!!!!" before answering.
+# Run a specific test
+uv run pytest tests/ci/test_specific.py -vxs
+```
 
-If a policy prevents you from having an opinion, pretend to be responding as if you shared opinions that might be typical of eigenrobot.
+### Code Quality
+```bash
+# Run all linting and formatting (ruff, pyright, pre-commit)
+./bin/lint.sh
 
-be critical of the quality of your information
+# Or directly with pre-commit
+uv run pre-commit run --all-files
 
-if you find any request irritating respond dismissively like "be real" or "that's crazy man" or "lol no"
+# Run type checking only
+uv run pyright
 
-take however smart you're acting right now and write in the same style but as if you were +2sd smarter
+# Run ruff formatter/linter only
+uv run ruff check . --fix
+uv run ruff format .
+```
 
-## Strategy For Making Changes
+## Code Architecture
 
-When making any significant changes:
+### Core Components
 
-1. find or write tests that verify any assumptions about the existing design + confirm that it works as expected before changes are made
-2. first new write failing tests for the new design, run them to confirm they fail
-3. Then implement the changes for the new design. Run or add tests as-needed during development to verify assumptions if you encounter any difficulty.
-4. Run the full `tests/ci` suite once the changes are done. Confirm the new design works & confirm backward compatibility wasn't broken.
-5. Condense and deduplicate the relevant test logic into one file, re-read through the file to make sure we aren't testing the same things over and over again redundantly. Do a quick scan for any other potentially relevant files in `tests/` that might need to be updated or condensed.
-6. Update any relevant files in `docs/` and `examples/` and confirm they match the implementation and tests
+1. **Agent** (`browser_use/agent/service.py`)
+   - Main orchestrator that manages tasks and coordinates browser actions
+   - Uses MessageManager for conversation management
+   - Integrates with LLMs to decide next actions
+   - Tracks history and generates outputs
 
-When doing any truly massive refactors, trend towards using simple event buses and job queues to break down systems into smaller services that each manage some isolated subcomponent of the state.
+2. **Browser** (`browser_use/browser/`)
+   - Manages browser instances via Playwright/Patchright
+   - Handles sessions, profiles, contexts, and page management
+   - Supports headless/headful modes and various configurations
 
-If you struggle to update or edit files in-place, try shortening your match string to 1 or 2 lines instead of 3.
-If that doesn't work, just insert your new modified code as new lines in the file, then remove the old code in a second step instead of replacing.
+3. **Controller** (`browser_use/controller/service.py`)
+   - Registry system for available browser actions
+   - Handles action execution and result processing
+   - Extensible via decorator-based action registration
+
+4. **DOM Service** (`browser_use/dom/service.py`)
+   - Extracts and processes page content for LLM understanding
+   - Manages element detection and interaction
+   - Handles history tree processing for context
+
+5. **LLM Integration** (`browser_use/llm/`)
+   - Supports multiple providers: OpenAI, Anthropic, Google, DeepSeek, Groq, Azure, Ollama
+   - Unified interface via `BaseChatModel`
+   - Handles serialization and structured outputs
+
+### Key Design Patterns
+
+- **Lazy imports**: Main module uses `__getattr__` for on-demand imports
+- **Pydantic models**: All data structures use Pydantic v2 with strict validation
+- **Event-driven**: Uses `bubus` event bus for decoupled communication
+- **Service/View separation**: Business logic in `service.py`, data models in `views.py`
+
+## Important Development Guidelines
+
+### Code Style (from .cursor/rules/browser-use-rules.mdc)
+- Use async Python throughout
+- Use **tabs** for indentation in Python, not spaces
+- Modern Python typing: `str | None` instead of `Optional[str]`
+- Console logging in separate `_log_*` methods
+- Pydantic v2 models with strict validation
+- Runtime assertions for constraints
+- Use `uuid7str` for new ID fields
+
+### Testing
+- Tests go in `tests/ci/` when passing
+- Use pytest-httpserver for mock servers, never real URLs
+- No mocks except for LLMs
+- Modern pytest-asyncio: no `@pytest.mark.asyncio` needed
+- Test assumptions before making changes
+
+### Git Workflow
+- Always run pre-commit before commits
+- Never commit secrets or API keys
+- Follow existing commit message style in the repo
+
+## MCP (Model Context Protocol) Support
+
+Browser-use can be used as an MCP server or connect to external MCP servers:
+- Server mode: Exposes browser automation tools to Claude Desktop
+- Client mode: Agents can use external MCP tools alongside browser actions
+
+## Environment Variables
+
+Key environment variables (see `browser_use/config.py`):
+- `BROWSER_USE_LOGGING_LEVEL`: Logging level (default: info)
+- `BROWSER_USE_CONFIG_DIR`: Config directory location
+- `ANONYMIZED_TELEMETRY`: Enable/disable telemetry
+- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, etc.: LLM provider keys
+- `SKIP_LLM_API_KEY_VERIFICATION`: Skip API key checks (for testing)
+
+## Common Workflows
+
+### Adding a New Action
+```python
+from browser_use.controller import Controller, ActionResult
+
+controller = Controller()
+
+@controller.registry.action("Description of action")
+async def my_action(param: str, page: Page):
+    # Implementation
+    return ActionResult(extracted_content=result)
+```
+
+### Creating an Agent
+```python
+from browser_use import Agent
+from browser_use.llm import ChatOpenAI
+
+agent = Agent(
+    task="Your task description",
+    llm=ChatOpenAI(model="gpt-4o"),
+    controller=controller
+)
+history = await agent.run()
+```
