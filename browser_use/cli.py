@@ -930,7 +930,7 @@ class BrowserUseApp(App):
 
 		# Exit the application
 		self.exit()
-		print('\nTry running tasks on our cloud: https://browser-use.com')
+		# Cloud promotional message removed
 
 	def compose(self) -> ComposeResult:
 		"""Create the UI layout."""
@@ -960,8 +960,7 @@ class BrowserUseApp(App):
 			# Links panel with URLs
 			with Container(id='links-panel'):
 				with HorizontalGroup(classes='link-row'):
-					yield Static('Run at scale on cloud:    [blink]☁️[/]  ', markup=True, classes='link-label')
-					yield Link('https://browser-use.com', url='https://browser-use.com', classes='link-white link-url')
+					# Cloud promotional content removed
 
 				yield Static('')  # Empty line
 

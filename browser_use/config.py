@@ -62,19 +62,7 @@ class OldConfig:
 	def BROWSER_USE_CLOUD_SYNC(self) -> bool:
 		return os.getenv('BROWSER_USE_CLOUD_SYNC', 'false').lower()[:1] in 'ty1'  # Changed default to false
 
-	@property
-	def BROWSER_USE_CLOUD_API_URL(self) -> str:
-		url = os.getenv('BROWSER_USE_CLOUD_API_URL', 'https://api.browser-use.com')
-		assert '://' in url, 'BROWSER_USE_CLOUD_API_URL must be a valid URL'
-		return url
-
-	@property
-	def BROWSER_USE_CLOUD_UI_URL(self) -> str:
-		url = os.getenv('BROWSER_USE_CLOUD_UI_URL', '')
-		# Allow empty string as default, only validate if set
-		if url and '://' not in url:
-			raise AssertionError('BROWSER_USE_CLOUD_UI_URL must be a valid URL if set')
-		return url
+	# Cloud API URLs removed for privacy - no external connections needed
 
 	# Path configuration
 	@property
@@ -182,8 +170,7 @@ class FlatEnvConfig(BaseSettings):
 	BROWSER_USE_LOGGING_LEVEL: str = Field(default='info')
 	ANONYMIZED_TELEMETRY: bool = Field(default=False)  # Privacy: disabled by default
 	BROWSER_USE_CLOUD_SYNC: bool | None = Field(default=False)  # Privacy: disabled by default
-	BROWSER_USE_CLOUD_API_URL: str = Field(default='https://api.browser-use.com')
-	BROWSER_USE_CLOUD_UI_URL: str = Field(default='')
+	# Cloud API URLs removed for privacy - no external connections needed
 
 	# Path configuration
 	XDG_CACHE_HOME: str = Field(default='~/.cache')
